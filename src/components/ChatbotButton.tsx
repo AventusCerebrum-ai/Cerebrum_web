@@ -9,20 +9,12 @@ interface Message {
   timestamp: Date;
 }
 
-// Use environment variables properly
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-
-// Different API endpoints to try (in order)
-const API_ENDPOINTS = [
-  // Latest v1 API with gemini-pro
-  '/api/gemini/v1/models/gemini-pro:generateContent',
-  // Legacy v1beta with gemini-pro
-  '/api/gemini/v1beta/models/gemini-pro:generateContent',
-  // Try gemini-1.5-pro with v1
-  '/api/gemini/v1/models/gemini-1.5-pro:generateContent',
-  // Try gemini-1.5-flash with v1
-  '/api/gemini/v1/models/gemini-1.5-flash:generateContent',
-];
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'YOUR_API_KEY';
+// New correct endpoint format
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+// Proxy paths for different approaches
+const LOCAL_API_PROXY = '/api/gemini/v1beta/models/gemini-pro:generateContent';
+const DIRECT_API_PROXY = '/direct-gemini/v1beta/models/gemini-pro:generateContent';
 
 const welcomeMessages = [
   "Hi there! I'm CerebrumAI's assistant. How can I help you today?",
@@ -133,79 +125,187 @@ const ChatbotButton: React.FC = () => {
     
     // Store the user's question to reference in fallback response
     const userQuestion = inputText.trim();
-    const lowerQuestion = userQuestion.toLowerCase();
     
-    // Hardcoded responses for common questions
-    const getHardcodedResponse = () => {
-      // General greetings
-      if (lowerQuestion.match(/^(hi|hello|hey|greetings).*/i)) {
-        return "Hello! I'm CerebrumAI's assistant. How can I help you today?";
-      }
-      
-      // About CerebrumAI
-      if (lowerQuestion.match(/(what is|about|tell me about) (cerebrum|cerebrumai)/i)) {
-        return "CerebrumAI is a next-generation, multimodal AI system that analyzes patient inputs including text, images, and behavioral data to deliver personalized triage recommendations.";
-      }
-      
-      // Features
-      if (lowerQuestion.match(/(features|what can|capabilities|abilities)/i)) {
-        return "CerebrumAI offers multimodal analysis combining text, images, and behavioral data, advanced medical triage recommendations, connection with healthcare professionals, and report analysis for medical documents.";
-      }
-      
-      // How it works
-      if (lowerQuestion.match(/(how does it work|how do you work|how it works)/i)) {
-        return "CerebrumAI works by analyzing multiple data inputs like text, images, and behavioral data to provide personalized medical triage recommendations. It uses advanced AI algorithms to process this information securely and efficiently.";
-      }
-      
-      // Security/Privacy
-      if (lowerQuestion.match(/(secure|security|privacy|hipaa|compliance)/i)) {
-        return "CerebrumAI is designed with security as a priority. We are HIPAA-compliant and follow strict privacy protocols to ensure all patient data is secured and handled according to healthcare industry standards.";
-      }
-      
-      // Contact
-      if (lowerQuestion.match(/(contact|support|help|email|phone)/i)) {
-        return "You can contact our support team at info@cerebrum.ai for any questions or issues.";
-      }
-      
-      // Benefits
-      if (lowerQuestion.match(/(benefits|advantages|why use)/i)) {
-        return "CerebrumAI provides faster, more accurate triage recommendations by analyzing multiple types of data. This leads to better healthcare outcomes, reduced wait times, and more efficient use of medical resources.";
-      }
-      
-      // Cost/Pricing
-      if (lowerQuestion.match(/(cost|price|pricing|subscription|pay)/i)) {
-        return "For detailed pricing information, please visit our website at cerebrum.ai/pricing or contact our sales team at sales@cerebrum.ai.";
-      }
-      
-      // Integration
-      if (lowerQuestion.match(/(integrate|integration|connect|api)/i)) {
-        return "CerebrumAI offers integration options for healthcare providers and systems. For technical details, please contact our integration team at tech@cerebrum.ai.";
-      }
-      
-      // Thank you
-      if (lowerQuestion.match(/(thank you|thanks)/i)) {
-        return "You're welcome! If you have any other questions about CerebrumAI, feel free to ask.";
-      }
-      
-      // Default response for unknown questions
-      return "I understand you're asking about: \"" + userQuestion + "\". For detailed information on this topic related to CerebrumAI, please contact our support team at info@cerebrum.ai.";
+    // Prepare the request payload
+    const requestPayload = {
+      contents: [{
+        role: "user",
+        parts: [{
+          text: `You are a helpful assistant for CerebrumAI, which is a next-generation, multimodal AI system that collects and analyzes patient inputs—including text, images, and behavioral data—to deliver personalized triage recommendations. 
+          
+          Key features of CerebrumAI include:
+          - Multimodal analysis combining text, images, and behavioral data
+          - Advanced medical triage recommendations
+          - Connection with healthcare professionals
+          - Report analysis for medical documents
+          - Secure and HIPAA-compliant platform
+          
+          Answer the following question concisely and helpfully. If you don't know the answer, suggest the user might want to contact support via info@cerebrum.ai. Question: ${userQuestion}`
+        }]
+      }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 500,
+        topP: 0.8,
+        topK: 40
+      },
+      safetySettings: [
+        {
+          category: "HARM_CATEGORY_HARASSMENT",
+          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        },
+        {
+          category: "HARM_CATEGORY_HATE_SPEECH",
+          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        },
+        {
+          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        },
+        {
+          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        }
+      ]
     };
     
-    // Get hardcoded response or use API fallback logic
-    const botResponse = getHardcodedResponse();
-    
-    // Simulate typing delay
-    setTimeout(() => {
-      setMessages(prev => [
-        ...prev, 
-        {
-          sender: 'bot',
-          text: botResponse,
-          timestamp: new Date()
+    // Function to make API request with error handling
+    const makeApiRequest = async (endpoint, usesProxy = false) => {
+      try {
+        console.log(`Attempting ${usesProxy ? 'proxy' : 'direct'} request to: ${endpoint}`);
+        
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestPayload)
+        });
+
+        // Log response information for debugging
+        console.log(`${usesProxy ? 'Proxy' : 'Direct'} response status:`, response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`Gemini API ${usesProxy ? 'proxy' : 'direct'} error:`, response.status, errorText);
+          throw new Error(`Failed to get response (${usesProxy ? 'proxy' : 'direct'}): ${response.status} ${errorText.substring(0, 100)}...`);
         }
-      ]);
-      setIsTyping(false);
-    }, 1000);
+
+        const data = await response.json();
+        console.log(`${usesProxy ? 'Proxy' : 'Direct'} response data:`, data);
+        
+        // Validate the response format
+        if (!data.candidates || !data.candidates[0]?.content?.parts) {
+          console.error('Unexpected response format:', data);
+          throw new Error('Invalid response format from Gemini API');
+        }
+        
+        return data.candidates[0].content.parts[0].text || 
+          "I'm sorry, I couldn't process that request. Please try again.";
+      } catch (error) {
+        console.error(`Error in ${usesProxy ? 'proxy' : 'direct'} request:`, error);
+        throw error;
+      }
+    };
+    
+    try {
+      let botResponse;
+      
+      // Try multiple approaches in sequence
+      try {
+        // First try direct API call
+        const directEndpoint = `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`;
+        botResponse = await makeApiRequest(directEndpoint, false);
+      } catch (directError) {
+        console.log("Direct API call failed, trying proxy...");
+        
+        try {
+          // If direct call fails, try using the first proxy
+          const proxyEndpointWithParam = `${LOCAL_API_PROXY}?key=${GEMINI_API_KEY}`;
+          botResponse = await makeApiRequest(proxyEndpointWithParam, true);
+        } catch (proxyParamError) {
+          console.log("First proxy failed, trying direct proxy...");
+          
+          try {
+            // Try the direct proxy
+            const directProxyEndpoint = `${DIRECT_API_PROXY}?key=${GEMINI_API_KEY}`;
+            botResponse = await makeApiRequest(directProxyEndpoint, true);
+          } catch (directProxyError) {
+            console.log("Direct proxy failed, trying alternative approach with headers...");
+  
+            // Final attempt: Try proxy with key in header
+            const proxyEndpoint = LOCAL_API_PROXY;
+            const customFetch = async () => {
+              const response = await fetch(proxyEndpoint, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-goog-api-key': GEMINI_API_KEY
+                },
+                body: JSON.stringify(requestPayload)
+              });
+              
+              if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Gemini API proxy header error:', response.status, errorText);
+                throw new Error(`Failed to get response: ${response.status} ${errorText.substring(0, 100)}...`);
+              }
+              
+              const data = await response.json();
+              return data.candidates?.[0]?.content?.parts?.[0]?.text || 
+                "I'm sorry, I couldn't process that request. Please try again.";
+            };
+            
+            botResponse = await customFetch();
+          }
+        }
+      }
+      
+      // If we get here, one of the approaches succeeded
+      setTimeout(() => {
+        setMessages(prev => [
+          ...prev, 
+          {
+            sender: 'bot',
+            text: botResponse,
+            timestamp: new Date()
+          }
+        ]);
+        setIsTyping(false);
+      }, 500); // Add a slight delay to simulate thinking
+      
+    } catch (allFailedError) {
+      console.error('All API request attempts failed:', allFailedError);
+      
+      // Generate a fallback response for common questions
+      let fallbackResponse = "I'm having trouble connecting to the AI service. Please try again later.";
+      
+      // Simple pattern matching for common questions
+      const lowerQuestion = userQuestion.toLowerCase();
+      if (lowerQuestion.includes("what is cerebrum") || lowerQuestion.includes("about cerebrum")) {
+        fallbackResponse = "CerebrumAI is a next-generation, multimodal AI system that analyzes patient inputs including text, images, and behavioral data to deliver personalized triage recommendations.";
+      } else if (lowerQuestion.includes("feature") || lowerQuestion.includes("what can")) {
+        fallbackResponse = "CerebrumAI offers multimodal analysis combining text, images, and behavioral data, advanced medical triage recommendations, connection with healthcare professionals, and report analysis for medical documents.";
+      } else if (lowerQuestion.includes("contact") || lowerQuestion.includes("support")) {
+        fallbackResponse = "You can contact our support team at info@cerebrum.ai for any questions or issues.";
+      } else if (lowerQuestion.includes("how does it work") || lowerQuestion.includes("how do you work")) {
+        fallbackResponse = "CerebrumAI works by analyzing multiple data inputs like text, images, and behavioral data to provide personalized medical triage recommendations. It uses advanced AI algorithms to process this information securely and efficiently.";
+      } else if (lowerQuestion.includes("secure") || lowerQuestion.includes("privacy") || lowerQuestion.includes("hipaa")) {
+        fallbackResponse = "CerebrumAI is designed with security as a priority. We are HIPAA-compliant and follow strict privacy protocols to ensure all patient data is secured and handled according to healthcare industry standards.";
+      }
+      
+      setTimeout(() => {
+        setMessages(prev => [
+          ...prev, 
+          {
+            sender: 'bot',
+            text: fallbackResponse,
+            timestamp: new Date()
+          }
+        ]);
+        setIsTyping(false);
+      }, 500);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

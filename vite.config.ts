@@ -28,35 +28,16 @@ export default defineConfig(({ mode }) => ({
       '/api/gemini': {
         target: 'https://generativelanguage.googleapis.com',
         changeOrigin: true,
-        secure: false,
-        rewrite: (path: string) => {
-          console.log('Rewriting path from:', path);
-          const rewritten = path.replace(/^\/api\/gemini/, '');
-          console.log('Rewritten path to:', rewritten);
-          return rewritten;
-        },
+        rewrite: (path: string) => path.replace(/^\/api\/gemini/, ''),
         configure: (proxy: any, _options: any) => {
           proxy.on('error', (err: any, _req: any, _res: any) => {
             console.log('Gemini proxy error', err);
           });
           proxy.on('proxyReq', (proxyReq: any, req: any, _res: any) => {
             console.log('Gemini Proxy Request:', req.method, req.url);
-            console.log('Gemini Proxy Request Headers:', req.headers);
-            console.log('Proxy target:', req.headers.host);
           });
           proxy.on('proxyRes', (proxyRes: any, req: any, _res: any) => {
             console.log('Gemini Proxy Response:', proxyRes.statusCode, req.url);
-            console.log('Gemini Proxy Response Headers:', proxyRes.headers);
-            if (proxyRes.statusCode >= 400) {
-              // Read response body for error details
-              let body = '';
-              proxyRes.on('data', function(chunk) {
-                body += chunk;
-              });
-              proxyRes.on('end', function() {
-                console.log('Gemini Proxy Response Error Body:', body);
-              });
-            }
           });
         }
       },
@@ -71,6 +52,31 @@ export default defineConfig(({ mode }) => ({
           });
         }
       }
+    }
+  },
+  plugins: [
+    react(),
+    mode === 'development' &&
+    componentTagger(),
+  ].filter(Boolean),
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+}));,
+      // Additional direct proxy for bypass
+      '/direct-gemini': {
+        target: 'https://generativelanguage.googleapis.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/direct-gemini/, ''),
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('Direct Gemini proxy error', err);
+          });
+        }
+      }
+    }
     }
   },
   plugins: [

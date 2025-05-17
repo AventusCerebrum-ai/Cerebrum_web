@@ -218,123 +218,57 @@ const Index: React.FC = () => {
           will-change: transform;
           transition: transform 0.4s ease-out; /* Increased from 0.2s for smoother transitions */
         }
-
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(40px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* Journey progress bar animation */
-        @keyframes progressGlow {
-          0%, 100% { box-shadow: 0 0 5px rgba(103, 232, 249, 0.6); }
-          50% { box-shadow: 0 0 15px rgba(103, 232, 249, 0.8); }
-        }
-        
-        .journey-progress-bar {
-          animation: progressGlow 3s infinite;
-        }
-        
-        .journey-node {
-          animation: progressGlow 2s infinite;
-        }
-        
-        .journey-node.delay-1 {
-          animation-delay: 0.5s;
-        }
-        
-        .journey-node.delay-2 {
-          animation-delay: 1s;
-        }
-        
-        .journey-node.delay-3 {
-          animation-delay: 1.5s;
-        }
       `}</style>
 
       {/* Marquee Companies */}
       <MarqueeCompanies />
 
-      {/* Modernized Digital Triage Section - NEW CARD-BASED DESIGN */}
-      <section className="relative z-1 min-h-[70vh] flex items-center justify-center px-2 md:px-0 py-20 animate-fade-in">
-        {/* Animated SVG background */}
-        <svg className="absolute inset-0 w-full h-full z-0 animate-pulse" viewBox="0 0 1440 600" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="grad1" cx="50%" cy="50%" r="80%" fx="50%" fy="50%">
-              <stop offset="0%" stopColor="#67e8f9" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.05" />
-            </radialGradient>
-          </defs>
-          <ellipse cx="720" cy="300" rx="700" ry="250" fill="url(#grad1)" />
-          <ellipse cx="400" cy="100" rx="180" ry="60" fill="#22d3ee" fillOpacity="0.08" />
-          <ellipse cx="1200" cy="500" rx="200" ry="80" fill="#a5f3fc" fillOpacity="0.10" />
-        </svg>
-        <div className="relative z-10 w-full max-w-6xl mx-auto">
-          <div className="backdrop-blur-2xl bg-white/95 dark:bg-[#1a2233]/80 border border-cyan-400/20 rounded-3xl shadow-2xl p-8 md:p-14 flex flex-col items-center">
-            <h3 className="font-extrabold text-3xl md:text-4xl mb-6 text-cyan-600 dark:text-cyan-300 text-center tracking-wide drop-shadow-lg">
-              The CerebrumAI Triage Journey
-            </h3>
-            <p className="text-lg md:text-xl text-gray-600 dark:text-cyan-100 text-center mb-12 max-w-2xl">
-              Experience a next-gen, interactive digital triage—where your journey is powered by AI, multimodal data, and actionable insights.
-            </p>
-            
-            {/* Journey Cards */}
-            <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-4">
-              <JourneyCard 
-                number="1"
-                icon="🔍"
-                title="Multimodal Input"
-                description="Submit your symptoms using text, images, or even behavioral biometrics for a comprehensive analysis."
-                delay={0}
-                gradient="from-cyan-500 to-blue-500"
-              />
-              <JourneyCard 
-                number="2"
-                icon="🧠"
-                title="AI-Powered Analysis"
-                description="CerebrumAI fuses your data and runs advanced models for a holistic, accurate assessment."
-                delay={150}
-                gradient="from-blue-500 to-indigo-500"
-              />
-              <JourneyCard 
-                number="3"
-                icon="💡"
-                title="Personalized Insights"
-                description="Receive context-aware, actionable recommendations tailored specifically to your unique needs."
-                delay={300}
-                gradient="from-indigo-500 to-purple-500"
-              />
-              <JourneyCard 
-                number="4"
-                icon="👨‍⚕️"
-                title="Seamless Doctor Connect"
-                description="If needed, securely connect with healthcare professionals for specialized care."
-                delay={450}
-                gradient="from-purple-500 to-cyan-500"
-              />
-            </div>
-
-            {/* Journey Path Connector */}
-            <div className="hidden md:flex w-full justify-center mt-6 mb-8">
-              <div className="h-1 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 rounded-full w-3/4 opacity-60"></div>
-            </div>
-
-            {/* Animated Journey Progress */}
-            <div className="hidden md:block relative w-full max-w-3xl h-2 my-8">
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-full journey-progress-bar"></div>
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-cyan-300 shadow-lg shadow-cyan-500/50 journey-node"></div>
-              <div className="absolute left-1/3 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-blue-400 shadow-lg shadow-blue-500/50 journey-node delay-1"></div>
-              <div className="absolute left-2/3 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-indigo-400 shadow-lg shadow-indigo-500/50 journey-node delay-2"></div>
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-purple-400 shadow-lg shadow-purple-500/50 journey-node delay-3"></div>
-            </div>
-
-            {/* Call to Action */}
-            <button
-              onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}
-              className="mt-10 px-10 py-3 bg-gradient-to-r from-cyan-400 to-blue-500 text-white rounded-full font-bold shadow-xl hover:scale-105 hover:from-cyan-300 hover:to-blue-400 transition-all text-lg"
-            >
-              Start Your Triage Journey
-            </button>
+      {/* Modernized Digital Triage Section */}
+      <section className="relative z-1 min-h-[60vh] flex items-center justify-center px-2 md:px-0 py-16 animate-fade-in">
+        <div className="backdrop-blur-lg bg-white/10 dark:bg-[#1a2233]/30 border border-cyan-400/10 rounded-3xl shadow-2xl p-8 md:p-14 flex flex-col items-center max-w-3xl w-full mx-auto">
+          <h3 className="font-bold text-2xl md:text-3xl mb-4 text-cyan-300 text-center drop-shadow">
+            How CerebrumAI Modernizes Digital Triage
+          </h3>
+          <p className="text-lg md:text-xl text-cyan-100 text-center mb-8 max-w-2xl">
+            CerebrumAI is designed to modernize digital triage through an intelligent, <span className="text-cyan-300 font-semibold">multimodal approach</span>.<br />
+            By analyzing a combination of <span className="text-cyan-200">textual descriptions</span>, <span className="text-cyan-200">medical images</span>, and <span className="text-cyan-200">behavioral biometrics</span>, it delivers context-aware assessments that go beyond conventional symptom checkers—enabling safer and more actionable care journeys.
+          </p>
+          {/* Animated or styled image */}
+          <div className="mb-8">
+            {/* Replace with a Lottie animation or SVG if you have one */}
+            <img
+              src="/Dna.jpeg"
+              alt="AI Digital Triage"
+              className="rounded-2xl shadow-xl border-2 border-cyan-400/20 w-full max-w-xs mx-auto animate-pulse"
+              loading="lazy"
+              draggable={false}
+            />
           </div>
+          {/* Feature Highlights */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-8">
+            <FeatureCard
+              icon={<Eye size={32} className="text-cyan-300" />}
+              title="Multimodal Input"
+              desc="Seamless capture of text, images, and behavioral data for a holistic triage."
+            />
+            <FeatureCard
+              icon={<UserCheck size={32} className="text-cyan-300" />}
+              title="Personalized AI"
+              desc="AI-driven analysis delivers tailored, actionable recommendations."
+            />
+            <FeatureCard
+              icon={<Mail size={32} className="text-cyan-300" />}
+              title="Secure Doctor Access"
+              desc="Connect safely with professionals only when advanced intervention is needed."
+            />
+          </div>
+          {/* Call to Action */}
+          <button
+            onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}
+            className="mt-2 px-8 py-3 bg-cyan-500 text-white rounded-full font-semibold shadow hover:bg-cyan-400 transition"
+          >
+            See CerebrumAI in Action
+          </button>
         </div>
       </section>
 
@@ -730,35 +664,12 @@ const Index: React.FC = () => {
   );
 };
 
-// Journey Card Component for card-based layout
-const JourneyCard = ({ number, icon, title, description, delay, gradient }) => (
-  <div 
-    className={`journey-card flex flex-col rounded-xl overflow-hidden shadow-md transform hover:scale-105 transition-all duration-300`}
-    style={{animation: `fadeInUp 0.7s ${delay}ms both`}}
-  >
-    <div className={`bg-white dark:bg-gray-900/80 h-full rounded-xl p-6 flex flex-col border border-${gradient.split('-')[2]}-200 dark:border-${gradient.split('-')[2]}-500/30`}>
-      <div className="journey-number flex justify-between items-start mb-2">
-        <div className={`text-xl font-bold bg-${gradient.split('-')[2]}-500 text-white w-8 h-8 flex items-center justify-center rounded-full`}>{number}</div>
-        <div className="text-2xl">{icon}</div>
-      </div>
-      <h4 className={`text-lg font-bold text-${gradient.split('-')[2]}-700 dark:text-${gradient.split('-')[2]}-300 mb-2`}>{title}</h4>
-      <p className="text-gray-700 dark:text-gray-300 text-sm flex-grow">{description}</p>
-      <div className={`mt-4 w-8 h-1 rounded-full bg-${gradient.split('-')[2]}-300 dark:bg-${gradient.split('-')[2]}-500/50`}></div>
-    </div>
-  </div>
-);
-
-// Original TriageStep component kept for reference
-const TriageStep = ({ icon, title, desc, delay }) => (
-  <div className={`relative flex items-center w-full max-w-xl mb-10 group`} style={{animation: `fadeInUp 0.7s ${delay}ms both`}}>
-    <div className="flex flex-col items-center mr-6 z-10">
-      {icon}
-      <div className="w-1 h-10 bg-cyan-400/30 group-last:hidden"></div>
-    </div>
-    <div className="bg-cyan-900/40 dark:bg-cyan-800/40 rounded-2xl p-5 shadow-lg border border-cyan-400/10 flex-1">
-      <div className="font-bold text-cyan-200 mb-1 text-lg">{title}</div>
-      <div className="text-cyan-100 text-base">{desc}</div>
-    </div>
+// Place this FeatureCard component above or in the same file:
+const FeatureCard = ({ icon, title, desc }) => (
+  <div className="bg-cyan-900/30 rounded-xl p-5 flex flex-col items-center shadow border border-cyan-400/10">
+    <div className="mb-2">{icon}</div>
+    <div className="font-bold text-cyan-200 mb-1">{title}</div>
+    <div className="text-cyan-100 text-sm text-center">{desc}</div>
   </div>
 );
 
