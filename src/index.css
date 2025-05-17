@@ -1,0 +1,153 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 177 30% 25%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 177 30% 25%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 177 30% 25%;
+
+    --primary: 177 57% 61%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 177 30% 95%;
+    --secondary-foreground: 177 57% 40%;
+
+    --muted: 177 20% 96%;
+    --muted-foreground: 177 15% 45%;
+
+    --accent: 177 30% 94%;
+    --accent-foreground: 177 57% 40%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 177 15% 90%;
+    --input: 177 15% 90%;
+    --ring: 177 57% 61%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 177 30% 25%;
+    --sidebar-primary: 177 57% 61%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 177 20% 95%;
+    --sidebar-accent-foreground: 177 57% 40%;
+    --sidebar-border: 177 15% 90%;
+    --sidebar-ring: 177 57% 61%;
+  }
+
+  .dark {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 95%;
+
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 177 57% 61%;
+    --primary-foreground: 0 0% 5%;
+
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 70%;
+
+    --accent: 0 0% 20%;
+    --accent-foreground: 0 0% 95%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 177 57% 61%;
+
+    --sidebar-background: 0 0% 7%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 177 57% 61%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 177 57% 61%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+  
+  /* Hide Spline watermark and attribution */
+  .spline-watermark,
+  spline-viewer::after,
+  spline-viewer:after,
+  spline-viewer a[href*="spline.design"],
+  spline-viewer [data-engine="spline"],
+  spline-viewer div[style*="position: absolute; bottom: 0px; right: 0px;"],
+  spline-viewer canvas + div {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    height: 0 !important;
+    width: 0 !important;
+    transform: scale(0) !important;
+  }
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+::selection {
+  color: cyan;         /* Text color when selected */
+}
+
+/* Custom animations for Preloader */
+@keyframes ping-slow {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 0.4; }
+  100% { transform: scale(1); opacity: 0.8; }
+}
+
+@keyframes synapse {
+  0% { transform: scale(0); opacity: 0; }
+  10% { transform: scale(1); opacity: 1; }
+  20% { transform: translate(20px, 15px) scale(1.2); opacity: 0.8; }
+  40% { transform: translate(-15px, -10px) scale(0.8); opacity: 0.6; }
+  60% { transform: translate(10px, -20px) scale(1); opacity: 0.4; }
+  80% { transform: translate(-5px, 15px) scale(0.6); opacity: 0.2; }
+  100% { transform: translate(0, 0) scale(0); opacity: 0; }
+}
+
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
+
+.animation-delay-600 {
+  animation-delay: 600ms;
+}
+
+.animate-ping-slow {
+  animation: ping-slow 3s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-synapse {
+  animation: synapse 3s ease-in-out infinite;
+}
