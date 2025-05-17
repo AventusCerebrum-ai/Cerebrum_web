@@ -17,13 +17,20 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface AnalysisHistory {
   id: string;
   date: Date;
   condition?: string;
   severity?: "Mild" | "Moderate" | "Severe";
-  status?: "Completed" | "In Progress" | "Needs Review";
+  status?:
+    | "Completed"
+    | "In Progress"
+    | "Needs Review"
+    | "Doctor Review Complete"
+    | "Pending Doctor Review"
+    | "Doctor Review Requested";
   doctorName?: string;
   raw?: any; // Store the full record for later use
 }
@@ -46,6 +53,7 @@ const AnalysisHistorySidebar: React.FC<AnalysisHistorySidebarProps> = ({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (history.length === 0 && !isCollapsed) {
@@ -53,14 +61,14 @@ const AnalysisHistorySidebar: React.FC<AnalysisHistorySidebarProps> = ({
     }
   }, [history.length, isCollapsed, onCollapse]);
 
-  const getStatusColor = (status?: AnalysisHistory["status"]) => {
+  const getStatusColor = (status?: string) => {
     switch (status) {
-      case "Completed":
+      case "Doctor Review Complete":
         return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300";
-      case "In Progress":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300";
-      case "Needs Review":
+      case "Pending Doctor Review":
         return "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300";
+      case "Doctor Review Requested":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300";
       default:
         return "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300";
     }
@@ -144,7 +152,7 @@ const AnalysisHistorySidebar: React.FC<AnalysisHistorySidebarProps> = ({
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-4">
             {!isCollapsed && (
-              <h2 className="text-lg font-semibold">Analysis History</h2>
+              <h2 className="text-lg font-semibold">Previous Analysis</h2>
             )}
             <div className="flex items-center gap-2">
               {!isCollapsed && <Clock className="h-5 w-5 text-gray-400" />}
@@ -195,16 +203,6 @@ const AnalysisHistorySidebar: React.FC<AnalysisHistorySidebarProps> = ({
                           </div>
 
                           <div className="flex flex-wrap gap-2">
-                            {analysis.severity && (
-                              <Badge
-                                variant="outline"
-                                className={`text-xs ${getSeverityColor(
-                                  analysis.severity
-                                )}`}
-                              >
-                                {analysis.severity}
-                              </Badge>
-                            )}
                             {analysis.status && (
                               <Badge
                                 variant="outline"
@@ -216,6 +214,31 @@ const AnalysisHistorySidebar: React.FC<AnalysisHistorySidebarProps> = ({
                               </Badge>
                             )}
                           </div>
+                          {analysis.status === "Doctor Review Complete" ||
+                          analysis.status === "Completed" ? (
+                            <Button
+                              size="sm"
+                              className="mt-2 w-full bg-[#62d5d0]/90 hover:bg-[#62d5d0] text-white"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(
+                                  `/doctor-response?analysisId=${analysis.id}&doctorId=${analysis.raw?.analysis_data?.doctor_id}`
+                                );
+                              }}
+                            >
+                              Show Doctor Analysis
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              className="mt-2 w-full"
+                              disabled
+                              title="Doctor review pending"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Show Doctor Analysis
+                            </Button>
+                          )}
 
                           {analysis.doctorName && (
                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">

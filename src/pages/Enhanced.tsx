@@ -12,7 +12,12 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle, Stethoscope, CheckCircle2, Loader2 } from "lucide-react";
+import {
+  AlertTriangle,
+  Stethoscope,
+  CheckCircle2,
+  Loader2,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/components/ui/use-toast";
@@ -33,11 +38,13 @@ const Enhanced = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  
+
   // Get analysis ID from location state if available
-  const [existingAnalysisId, setExistingAnalysisId] = useState(location.state?.analysisId);
+  const [existingAnalysisId, setExistingAnalysisId] = useState(
+    location.state?.analysisId
+  );
   const [apiResponse, setApiResponse] = useState(location.state?.apiResponse);
-  
+
   const [selectedDoctor, setSelectedDoctor] = useState<string | null>(null);
   const [consentToShare, setConsentToShare] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
@@ -51,58 +58,54 @@ const Enhanced = () => {
     const checkForExistingRecord = async () => {
       // Skip if we already have an analysisId or we don't have apiResponse
       if (existingAnalysisId || !apiResponse) return;
-      
       try {
         // Get current user
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
         if (userError || !user) return;
-        
         // Query for existing records with the same content
         const { data, error } = await supabase
-          .from('analysis_records')
-          .select('id')
-          .eq('user_id', user.id)
-          .filter('analysis_data', 'neq', null);
-        
+          .from("analysis_records")
+          .select("id, analysis_data")
+          .eq("user_id", user.id)
+          .filter("analysis_data", "neq", null);
         if (error || !data) return;
-        
         // Find a match based on some unique property in the apiResponse
-        // You might need to adjust this based on what fields reliably identify a unique analysis
         const match = data.find((record: any) => {
           const analysisData = record.analysis_data;
-          return analysisData && 
-                 analysisData.analysis &&
-                 apiResponse.analysis &&
-                 analysisData.analysis.final_analysis === apiResponse.analysis.final_analysis;
+          return (
+            analysisData &&
+            analysisData.analysis &&
+            apiResponse.analysis &&
+            analysisData.analysis.final_analysis ===
+              apiResponse.analysis.final_analysis
+          );
         });
-        
         if (match) {
-          console.log("Found existing record:", match.id);
           setExistingAnalysisId(match.id);
         }
       } catch (err) {
         console.error("Error checking for existing records:", err);
       }
     };
-    
     checkForExistingRecord();
   }, [existingAnalysisId, apiResponse]);
 
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const { data, error } = await supabase
-          .from('doctors')
-          .select('*');
-        
+        const { data, error } = await supabase.from("doctors").select("*");
+
         if (error) {
           throw error;
         }
-        
+
         setDoctors(data || []);
       } catch (err) {
-        console.error('Error fetching doctors:', err);
-        setError('Failed to load doctors. Please try again later.');
+        console.error("Error fetching doctors:", err);
+        setError("Failed to load doctors. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -116,34 +119,33 @@ const Enhanced = () => {
     if (selectedDoctor && consentToShare && agreeToTerms) {
       try {
         setSubmitting(true);
-
         // Get current user
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
         if (userError) throw userError;
-        if (!user) throw new Error("You must be logged in to submit an analysis");
-
+        if (!user)
+          throw new Error("You must be logged in to submit an analysis");
         let analysisId = existingAnalysisId;
-        
         if (existingAnalysisId) {
           // If we have an existing analysisId, update that record
           const { error: updateError } = await supabase
-            .from('analysis_records')
+            .from("analysis_records")
             .update({
               analysis_data: {
                 ...apiResponse,
                 doctor_id: selectedDoctor,
                 status: "pending",
-                request_date: new Date().toISOString()
-              }
+                request_date: new Date().toISOString(),
+              },
             })
-            .eq('id', existingAnalysisId);
-            
+            .eq("id", existingAnalysisId);
           if (updateError) throw updateError;
-          console.log("Updated existing record:", existingAnalysisId);
         } else {
           // Only create a new record if no existing analysisId
           const { data: analysisRecord, error: analysisError } = await supabase
-            .from('analysis_records')
+            .from("analysis_records")
             .insert({
               user_id: user.id,
               name: "Doctor Consultation Request",
@@ -151,29 +153,29 @@ const Enhanced = () => {
                 ...apiResponse,
                 doctor_id: selectedDoctor,
                 status: "pending",
-                request_date: new Date().toISOString()
-              }
+                request_date: new Date().toISOString(),
+              },
             })
             .select()
             .single();
-
           if (analysisError) throw analysisError;
           analysisId = analysisRecord.id;
-          console.log("Created new record:", analysisId);
+          setExistingAnalysisId(analysisId); // Store for future updates
         }
-
         toast({
           title: "Request Submitted",
           description: "Your consultation request has been sent to the doctor.",
         });
-
         // Redirect to the doctor response page
-        navigate(`/doctor-response?analysisId=${analysisId}&doctorId=${selectedDoctor}`);
+        navigate(
+          `/doctor-response?analysisId=${analysisId}&doctorId=${selectedDoctor}`
+        );
       } catch (err) {
         console.error("Error submitting form:", err);
         toast({
           title: "Submission Error",
-          description: "There was a problem submitting your request. Please try again.",
+          description:
+            "There was a problem submitting your request. Please try again.",
           variant: "destructive",
         });
       } finally {
@@ -182,7 +184,8 @@ const Enhanced = () => {
     } else {
       toast({
         title: "Required Fields",
-        description: "Please select a doctor and agree to all terms before submitting",
+        description:
+          "Please select a doctor and agree to all terms before submitting",
         variant: "destructive",
       });
     }
@@ -233,14 +236,19 @@ const Enhanced = () => {
                       />
                       <div className="flex items-start gap-4">
                         <Avatar className="w-12 h-12 border border-gray-200 dark:border-gray-700">
-                          <AvatarImage src={doctor.image_url} alt={doctor.first_name} />
+                          <AvatarImage
+                            src={doctor.image_url}
+                            alt={doctor.first_name}
+                          />
                           <AvatarFallback>
                             <Stethoscope className="h-6 w-6 text-gray-400" />
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
-                            <h3 className="font-medium">{doctor.first_name} {doctor.last_name}</h3>
+                            <h3 className="font-medium">
+                              {doctor.first_name} {doctor.last_name}
+                            </h3>
                             {selectedDoctor === doctor.id && (
                               <CheckCircle2 className="h-5 w-5 text-[#62d5d0]" />
                             )}
@@ -324,7 +332,10 @@ const Enhanced = () => {
                     type="submit"
                     className="w-full bg-[#62d5d0]/90 hover:bg-[#62d5d0] text-white"
                     disabled={
-                      !selectedDoctor || !consentToShare || !agreeToTerms || submitting
+                      !selectedDoctor ||
+                      !consentToShare ||
+                      !agreeToTerms ||
+                      submitting
                     }
                   >
                     {submitting ? (
